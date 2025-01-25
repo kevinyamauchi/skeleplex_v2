@@ -41,6 +41,7 @@ dependencies = [
     "numpy>=2.0.2",
     "scikit-image>=0.24.0",
     "skan>=0.12.2",
+    "splinebox>=0.3.0",
 ]
 
 # https://peps.python.org/pep-0621/#dependencies-optional-dependencies
