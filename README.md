@@ -6,4 +6,6 @@
 [![CI](https://github.com/kevinyamauchi/skeleplex-v2/actions/workflows/ci.yml/badge.svg)](https://github.com/kevinyamauchi/skeleplex-v2/actions/workflows/ci.yml)
 [![codecov](https://codecov.io/gh/kevinyamauchi/skeleplex-v2/branch/main/graph/badge.svg)](https://codecov.io/gh/kevinyamauchi/skeleplex-v2)
 
-A Python package for analyzing skeletons.
+## Work in progress
+
+This is a work-in-progress re-write of SkelePlex. Currently, nothing is working. Please check back later!
