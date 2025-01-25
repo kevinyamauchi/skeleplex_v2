@@ -35,11 +35,19 @@ classifiers = [
     "Typing :: Typed",
 ]
 # add your package dependencies here
-dependencies = []
+dependencies = [
+    "h5py>=3.12.1",
+    "numba>=0.60.0",
+    "numpy>=2.0.2",
+    "scikit-image>=0.24.0",
+    "skan>=0.12.2",
+]
 
 # https://peps.python.org/pep-0621/#dependencies-optional-dependencies
 # "extras" (e.g. for `pip install .[test]`)
 [project.optional-dependencies]
+# for visualization
+napari = ["napari[all]"]
 # add dependencies used for testing here
 test = ["pytest", "pytest-cov"]
 # add anything else you like to have in your dev environment here
