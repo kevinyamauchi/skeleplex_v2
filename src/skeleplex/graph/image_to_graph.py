@@ -35,9 +35,7 @@ def image_to_graph_skan(
     # destination_nodes = set(summary_table["node_id_dst"])
     # all_nodes = source_nodes.union(destination_nodes)
 
-    skeleton_graph = nx.MultiGraph(
-        shape=skeleton.skeleton_shape, dtype=skeleton.skeleton_dtype
-    )
+    skeleton_graph = nx.MultiGraph()
     for row in summary_table.itertuples(name="Edge"):
         # Iterate over the rows in the table.
         # Each row is an edge in the graph
