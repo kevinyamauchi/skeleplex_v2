@@ -4,7 +4,8 @@
 class SkeletonGraph:
     """Data class for a skeleton graph.
 
-    Attributes:
+    Attributes
+    ----------
         nodes: A list of nodes in the graph.
         edges: A list of edges in the graph.
     """

@@ -5,9 +5,18 @@ import numpy as np
 from skan.csr import Skeleton as SkanSkeleton
 from skan.csr import summarize
 
+from skeleplex.graph.constants import NODE_COORDINATE_KEY
+
 
 def image_to_graph_skan(skeleton_image: np.ndarray):
-    """Convert a skeleton image to a graph using skan."""
+    """Convert a skeleton image to a graph using skan.
+
+    Parameters
+    ----------
+    skeleton_image : np.ndarray
+        The image to convert to a skeleton graph.
+        The image should be a binary image and already skeletonized.
+    """
     # make the skeleton
     skeleton = SkanSkeleton(skeleton_image=skeleton_image)
     summary_table = summarize(skeleton, separator="_")
@@ -35,4 +44,13 @@ def image_to_graph_skan(skeleton_image: np.ndarray):
                 "path": skeleton.path_coordinates(index),
             },
         )
+
+    # add the node coordinates
+    new_node_data = {}
+    for node_index, node_data in skeleton_graph.nodes(data=True):
+        node_data[NODE_COORDINATE_KEY] = np.asarray(skeleton.coordinates[node_index])
+        new_node_data[node_index] = node_data
+
+    nx.set_node_attributes(skeleton_graph, new_node_data)
+
     return skeleton_graph
