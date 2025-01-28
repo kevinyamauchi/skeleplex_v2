@@ -166,7 +166,7 @@ class B3Spline:
             )
         spline_model_dict.update({"__class__": "splinebox.Spline"})
         return {
-            "__class__": "B3Spline",
+            "__class__": "skeleplex.B3Spline",
             "model": spline_model_dict,
             "backend": self._backend,
         }
@@ -186,6 +186,13 @@ class B3Spline:
 
         # load the spline model
         spline_model_dict = json_dict["model"]
+
+        if isinstance(spline_model_dict, splinebox.Spline):
+            # model has already been deserialized
+            # this can happen if a this is being called
+            # within another JSON decoder.
+            return cls(model=spline_model_dict)
+
         spline_model_dict.pop("__class__")
         spline_kwargs = _prepared_dict_for_constructor(spline_model_dict)
         spline_model = splinebox.Spline(**spline_kwargs)

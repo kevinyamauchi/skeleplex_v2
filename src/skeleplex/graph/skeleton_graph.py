@@ -4,8 +4,11 @@ import json
 
 import networkx as nx
 import numpy as np
-from splinebox import Spline
+from splinebox import Spline as SplineboxSpline
 from splinebox.spline_curves import _prepared_dict_for_constructor
+
+from skeleplex.graph.constants import EDGE_SPLINE_KEY
+from skeleplex.graph.spline import B3Spline
 
 
 def skeleton_graph_encoder(object_to_encode):
@@ -16,7 +19,7 @@ def skeleton_graph_encoder(object_to_encode):
     """
     if isinstance(object_to_encode, np.ndarray):
         return object_to_encode.tolist()
-    elif isinstance(object_to_encode, Spline):
+    elif isinstance(object_to_encode, SplineboxSpline):
         spline_dict = object_to_encode._to_dict(version=2)
         if "__class__" in spline_dict:
             raise ValueError(
@@ -24,6 +27,8 @@ def skeleton_graph_encoder(object_to_encode):
             )
         spline_dict.update({"__class__": "splinebox.Spline"})
         return spline_dict
+    elif isinstance(object_to_encode, B3Spline):
+        return object_to_encode.to_json_dict()
     raise TypeError(f"Object of type {type(object_to_encode)} is not JSON serializable")
 
 
@@ -38,7 +43,9 @@ def skeleton_graph_decoder(json_object):
         if json_object["__class__"] == "splinebox.Spline":
             json_object.pop("__class__")
             spline_kwargs = _prepared_dict_for_constructor(json_object)
-            return Spline(**spline_kwargs)
+            return SplineboxSpline(**spline_kwargs)
+        if json_object["__class__"] == "skeleplex.B3Spline":
+            return B3Spline.from_json_dict(json_object)
     return json_object
 
 
@@ -76,7 +83,7 @@ class SkeletonGraph:
         """Return a list of edge splines."""
         edge_splines = {}
         for edge_start, edge_end, edge_data in self.graph.edges(data=True):
-            edge_splines[(edge_start, edge_end)] = edge_data["spline"]
+            edge_splines[(edge_start, edge_end)] = edge_data[EDGE_SPLINE_KEY]
         return edge_splines
 
     def to_json_file(self, file_path: str):
