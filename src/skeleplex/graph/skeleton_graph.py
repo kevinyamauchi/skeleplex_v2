@@ -7,7 +7,8 @@ import numpy as np
 from splinebox import Spline as SplineboxSpline
 from splinebox.spline_curves import _prepared_dict_for_constructor
 
-from skeleplex.graph.constants import EDGE_SPLINE_KEY
+from skeleplex.graph.constants import EDGE_SPLINE_KEY, NODE_COORDINATE_KEY
+from skeleplex.graph.image_to_graph import image_to_graph_skan
 from skeleplex.graph.spline import B3Spline
 
 
@@ -74,12 +75,34 @@ class SkeletonGraph:
         return self.graph.nodes()
 
     @property
+    def node_coordinates(self) -> dict:
+        """Return a dictionary of node coordinates."""
+        node_coordinates = {}
+        for node, node_data in self.graph.nodes(data=True):
+            node_coordinates[node] = node_data[NODE_COORDINATE_KEY]
+        return node_coordinates
+
+    @property
+    def node_coordinates_array(self) -> np.ndarray:
+        """Return a numpy array of node coordinates.
+
+        The array is of shape (n_nodes, n_dimensions).
+        The order of the nodes is the same as the order of the nodes attribute.
+        """
+        return np.array(
+            [
+                node_data[NODE_COORDINATE_KEY]
+                for _, node_data in self.graph.nodes(data=True)
+            ]
+        )
+
+    @property
     def edges(self):
         """Return a list of edges."""
         return self.graph.edges()
 
     @property
-    def edge_splines(self):
+    def edge_splines(self) -> dict:
         """Return a list of edge splines."""
         edge_splines = {}
         for edge_start, edge_end, edge_data in self.graph.edges(data=True):
@@ -100,6 +123,27 @@ class SkeletonGraph:
         with open(file_path) as file:
             object_dict = json.load(file, object_hook=skeleton_graph_decoder)
         graph = nx.node_link_graph(object_dict["graph"], edges="edges")
+        return cls(graph=graph)
+
+    @classmethod
+    def from_skeleton_image(
+        cls, skeleton_image: np.ndarray, max_spline_knots: int = 10
+    ) -> "SkeletonGraph":
+        """Return a SkeletonGraph from a skeleton image.
+
+        Parameters
+        ----------
+        skeleton_image : np.ndarray
+            The skeleton image to convert to a graph.
+        max_spline_knots : int
+            The maximum number of knots to use for the spline fit to the branch path.
+            If the number of data points in the branch is less than this number,
+            the spline will use n_data_points - 1 knots.
+            See the splinebox Spline class docs for more information.
+        """
+        graph = image_to_graph_skan(
+            skeleton_image=skeleton_image, max_spline_knots=max_spline_knots
+        )
         return cls(graph=graph)
 
     def __eq__(self, other: "SkeletonGraph"):
