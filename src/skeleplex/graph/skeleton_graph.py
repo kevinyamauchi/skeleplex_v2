@@ -1,5 +1,8 @@
 """Data class for a skeleton graph."""
 
+import json
+
+import networkx as nx
 import numpy as np
 from splinebox import Spline
 from splinebox.spline_curves import _prepared_dict_for_constructor
@@ -42,26 +45,63 @@ def skeleton_graph_decoder(json_object):
 class SkeletonGraph:
     """Data class for a skeleton graph.
 
-    Attributes
+    Parameters
     ----------
-        nodes: A list of nodes in the graph.
-        edges: A list of edges in the graph.
+    graph : nx.Graph
+        The skeleton graph.
     """
 
-    def __init__(self, graph):
+    _backend = "networkx"
+
+    def __init__(self, graph: nx.Graph):
         self.graph = graph
+
+    @property
+    def backend(self) -> str:
+        """Return the backend used to store the graph."""
+        return self._backend
 
     @property
     def nodes(self):
         """Return a list of nodes."""
-        pass
+        return self.graph.nodes()
 
     @property
     def edges(self):
         """Return a list of edges."""
-        pass
+        return self.graph.edges()
 
     @property
     def edge_splines(self):
         """Return a list of edge splines."""
-        pass
+        edge_splines = {}
+        for edge_start, edge_end, edge_data in self.graph.edges(data=True):
+            edge_splines[(edge_start, edge_end)] = edge_data["spline"]
+        return edge_splines
+
+    def to_json_file(self, file_path: str):
+        """Return a JSON representation of the graph."""
+        graph_dict = nx.node_link_data(self.graph, edges="edges")
+        object_dict = {"graph": graph_dict}
+
+        with open(file_path, "w") as file:
+            json.dump(object_dict, file, indent=2, default=skeleton_graph_encoder)
+
+    @classmethod
+    def from_json_file(cls, file_path: str):
+        """Return a SkeletonGraph from a JSON file."""
+        with open(file_path) as file:
+            object_dict = json.load(file, object_hook=skeleton_graph_decoder)
+        graph = nx.node_link_graph(object_dict["graph"], edges="edges")
+        return cls(graph=graph)
+
+    def __eq__(self, other: "SkeletonGraph"):
+        """Check if two SkeletonGraph objects are equal."""
+        if set(self.nodes) != set(other.nodes):
+            # check if the nodes are the same
+            return False
+        elif set(self.edges) != set(other.edges):
+            # check if the edges are the same
+            return False
+        else:
+            return True
