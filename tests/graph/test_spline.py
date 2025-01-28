@@ -4,6 +4,7 @@ from skeleplex.graph.spline import B3Spline
 
 
 def test_uniform_sampling():
+    """Test uniform sampling of a spline."""
     # make three points that go from x=0 to x=1
     points = np.array(
         [
