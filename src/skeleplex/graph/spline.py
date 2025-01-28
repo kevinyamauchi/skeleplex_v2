@@ -1,7 +1,10 @@
 """Utilities for fitting and working with splines."""
 
+import json
+
 import numpy as np
 import splinebox
+from splinebox.spline_curves import _prepared_dict_for_constructor
 
 
 class B3Spline:
@@ -51,6 +54,55 @@ class B3Spline:
             positions * self.arc_length, atol=atol
         )
         return self.model.eval(positions_t, derivative=derivative)
+
+    def __eq__(self, other_object) -> bool:
+        """Check if two B3Spline objects are equal."""
+        if not isinstance(other_object, B3Spline):
+            return False
+        return self.model == other_object.model
+
+    def to_json_dict(self) -> dict:
+        """Return a JSON serializable dictionary."""
+        spline_model_dict = self.model._to_dict(version=2)
+        if "__class__" in spline_model_dict:
+            raise ValueError(
+                "The Spline object to encode already has a '__class__' key."
+            )
+        spline_model_dict.update({"__class__": "splinebox.Spline"})
+        return {
+            "__class__": "B3Spline",
+            "model": spline_model_dict,
+            "backend": self._backend,
+        }
+
+    def to_json_file(self, file_path: str) -> None:
+        """Save the spline to a JSON file."""
+        with open(file_path, "w") as file:
+            json.dump(self.to_json_dict(), file)
+
+    @classmethod
+    def from_json_dict(cls, json_dict: dict) -> "B3Spline":
+        """Return a B3Spline from a JSON serializable dictionary."""
+        if json_dict["backend"] != cls._backend:
+            raise ValueError(
+                f"Expected backend {cls._backend}, got {json_dict['backend']}."
+            )
+
+        # load the spline model
+        spline_model_dict = json_dict["model"]
+        spline_model_dict.pop("__class__")
+        spline_kwargs = _prepared_dict_for_constructor(spline_model_dict)
+        spline_model = splinebox.Spline(**spline_kwargs)
+
+        # make the class
+        return cls(model=spline_model)
+
+    @classmethod
+    def from_json_file(cls, file_path: str) -> "B3Spline":
+        """Return a B3Spline from a JSON file."""
+        with open(file_path) as file:
+            json_dict = json.load(file)
+        return cls.from_json_dict(json_dict)
 
     @classmethod
     def from_points(cls, points: np.ndarray, n_knots: int = 4):
