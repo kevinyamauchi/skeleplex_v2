@@ -19,7 +19,7 @@ name = "skeleplex-v2"
 dynamic = ["version"]
 description = "A Python package for analyzing skeletons."
 readme = "README.md"
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 license = { text = "BSD-3-Clause" }
 authors = [{ name = "Kevin Yamauchi", email = "kevin.yamauchi@gmail.com" }]
 # https://pypi.org/classifiers/
@@ -27,7 +27,6 @@ classifiers = [
     "Development Status :: 3 - Alpha",
     "License :: OSI Approved :: BSD License",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
@@ -41,6 +40,7 @@ dependencies = [
     "numpy>=2.0.2",
     "scikit-image>=0.24.0",
     "skan>=0.12.2",
+    "splinebox>=0.3.0",
 ]
 
 # https://peps.python.org/pep-0621/#dependencies-optional-dependencies
@@ -75,7 +75,7 @@ repository = "https://github.com/kevinyamauchi/skeleplex-v2"
 # https://docs.astral.sh/ruff
 [tool.ruff]
 line-length = 88
-target-version = "py39"
+target-version = "py310"
 src = ["src"]
 
 # https://docs.astral.sh/ruff/rules
