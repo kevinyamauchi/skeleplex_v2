@@ -2,11 +2,11 @@
 
 import networkx as nx
 import numpy as np
-import splinebox
 from skan.csr import Skeleton as SkanSkeleton
 from skan.csr import summarize
 
 from skeleplex.graph.constants import NODE_COORDINATE_KEY
+from skeleplex.graph.spline import B3Spline
 
 
 def image_to_graph_skan(
@@ -52,10 +52,10 @@ def image_to_graph_skan(
             n_spline_knots = n_points - 1
         else:
             n_spline_knots = max_spline_knots
-        basis_function = splinebox.B3()
-        spline = splinebox.Spline(n_spline_knots, basis_function)
-        spline.fit(spline_path)
-
+        spline = B3Spline.from_points(
+            points=spline_path,
+            n_knots=n_spline_knots,
+        )
         # Nodes are added if they don't exist so only need to add edges
         skeleton_graph.add_edge(
             i,
