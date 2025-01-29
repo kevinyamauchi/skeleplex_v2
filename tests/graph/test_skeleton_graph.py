@@ -32,10 +32,20 @@ def test_skeleton_graph_json_round_trip(simple_t_skeleton_graph, tmp_path):
     # check that the graphs are equal
     assert simple_t_skeleton_graph == new_skeleton_graph
 
+
 def test_skeleton_graph_to_directed(simple_t_skeleton_graph):
     """Test converting a SkeletonGraph to a directed graph."""
-    directed_graph = simple_t_skeleton_graph.graph.to_directed()
+    directed_graph = simple_t_skeleton_graph.to_directed(origin=0)
     assert directed_graph.is_directed()
 
     # check that the directed graph has the same nodes
     assert set(directed_graph.nodes) == set(simple_t_skeleton_graph.graph.nodes)
+
+    # check if the origin node has no incoming edges
+    assert len(list(directed_graph.in_edges(0))) == 0
+
+    # check edge directionality
+    for u, v in directed_graph.edges:
+        assert all(
+            edges in directed_graph.out_edges(u) for edges in directed_graph.in_edges(v)
+        )
