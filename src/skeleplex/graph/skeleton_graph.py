@@ -49,6 +49,42 @@ def skeleton_graph_decoder(json_object):
             return B3Spline.from_json_dict(json_object)
     return json_object
 
+def make_graph_directed(graph: nx.Graph, origin = int) -> nx.DiGraph:
+    """Return a directed graph from an undirected graph.
+
+    The directed graph has the same nodes and edges as the undirected graph.
+
+    Parameters
+    ----------
+    graph : nx.Graph
+        The undirected graph to convert to a directed graph.
+    origin : int
+        The node to use as the origin node for the directed graph.
+        The origin node will have no incoming edges.
+    """
+    if type(graph) == nx.DiGraph:   
+        print("The input graph is already a directed graph.")
+        return graph
+    if len([component for component in nx.connected_components(graph)]) >1:
+        Warning("""
+        The input graph is not connected. 
+        The unconnected components will contain multiple edges.
+        """)
+        orgin_part = nx.node_connected_component(graph, origin)
+        fragments = graph.subgraph(set(graph.nodes()) - orgin_part)
+        graph = graph.subgraph(orgin_part)
+    else:
+        fragments = None
+    
+    di_graph = nx.DiGraph(graph)
+    di_graph.remove_edges_from(di_graph.edges - nx.bfs_edges(di_graph, origin))
+
+    if fragments:
+        fragments = fragments.to_directed()
+        di_graph.add_edges_from(fragments.edges(data = True))
+        di_graph.add_nodes_from(fragments.nodes(data = True))
+    return di_graph
+
 
 class SkeletonGraph:
     """Data class for a skeleton graph.
@@ -145,6 +181,7 @@ class SkeletonGraph:
             skeleton_image=skeleton_image, max_spline_knots=max_spline_knots
         )
         return cls(graph=graph)
+    
 
     def __eq__(self, other: "SkeletonGraph"):
         """Check if two SkeletonGraph objects are equal."""
@@ -156,3 +193,18 @@ class SkeletonGraph:
             return False
         else:
             return True
+        
+    def to_directed(self, origin = int) -> nx.DiGraph:
+        """Return a directed graph from the skeleton graph.
+
+        The directed graph has the same nodes and edges as the skeleton graph.
+
+        Parameters
+        ----------
+        origin : int
+            The node to use as the origin node for the directed graph.
+            The origin node will have no incoming edges.
+        """
+        self.graph = make_graph_directed(self.graph, origin)
+        return self.graph
+

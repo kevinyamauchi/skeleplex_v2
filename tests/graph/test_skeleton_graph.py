@@ -31,3 +31,11 @@ def test_skeleton_graph_json_round_trip(simple_t_skeleton_graph, tmp_path):
 
     # check that the graphs are equal
     assert simple_t_skeleton_graph == new_skeleton_graph
+
+def test_skeleton_graph_to_directed(simple_t_skeleton_graph):
+    """Test converting a SkeletonGraph to a directed graph."""
+    directed_graph = simple_t_skeleton_graph.graph.to_directed()
+    assert directed_graph.is_directed()
+
+    # check that the directed graph has the same nodes
+    assert set(directed_graph.nodes) == set(simple_t_skeleton_graph.graph.nodes)
