@@ -16,6 +16,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - run: ls
       - name: Configure Git Credentials
         run: |
           git config user.name github-actions[bot]
@@ -23,6 +24,11 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: 3.x
+      - name: Install Package
+        run: |
+          python -m pip install -U pip
+          # if running a cron job, we add the --pre flag to test against pre-releases
+          python -m pip install .[test] ${{ github.event_name == 'schedule' && '--pre' || ''  }}
       - run: echo "cache_id=$(date --utc '+%V')" >> $GITHUB_ENV 
       - uses: actions/cache@v4
         with:
