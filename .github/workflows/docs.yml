@@ -4,6 +4,11 @@ on:
     branches:
       - master 
       - main
+    tags:
+    - "v*" # Push events to matching v*, i.e. v1.0, v20.15.10
+  pull_request:
+        branches:
+          - main
 permissions:
   contents: write
 jobs:
@@ -26,4 +31,9 @@ jobs:
           restore-keys: |
             mkdocs-material-
       - run: pip install mkdocs-material mkdocstrings-python mkdocs-literate-nav mkdocs-gen-files mkdocs-section-index
-      - run: mkdocs gh-deploy --force
+      - name: test build docs
+        if: github.event_name == 'pull_request'
+        run: mkdocs build
+      - name: deploy docs
+        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+        run: mkdocs gh-deploy --force
