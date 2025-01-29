@@ -60,6 +60,14 @@ dev = [
     "rich",  # https://github.com/Textualize/rich
     "ruff",
 ]
+# dependencies for docs
+docs = [
+    "mkdocs-material",
+    "mkdocstrings-python",
+    "mkdocs-literate-nav",
+    "mkdocs-gen-files",
+    "mkdocs-section-index"
+]
 
 [project.urls]
 homepage = "https://github.com/kevinyamauchi/skeleplex-v2"
