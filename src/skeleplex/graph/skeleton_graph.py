@@ -1,6 +1,7 @@
 """Data class for a skeleton graph."""
 
 import json
+import logging
 
 import networkx as nx
 import numpy as np
@@ -10,6 +11,9 @@ from splinebox.spline_curves import _prepared_dict_for_constructor
 from skeleplex.graph.constants import EDGE_SPLINE_KEY, NODE_COORDINATE_KEY
 from skeleplex.graph.image_to_graph import image_to_graph_skan
 from skeleplex.graph.spline import B3Spline
+
+logger = logging.getLogger(__name__)
+logging.basicConfig(level=logging.INFO)
 
 
 def skeleton_graph_encoder(object_to_encode):
@@ -48,6 +52,58 @@ def skeleton_graph_decoder(json_object):
         if json_object["__class__"] == "skeleplex.B3Spline":
             return B3Spline.from_json_dict(json_object)
     return json_object
+
+
+def make_graph_directed(graph: nx.Graph, origin: int) -> nx.DiGraph:
+    """Return a directed graph from an undirected graph.
+
+    The directed graph has the same nodes and edges as the undirected graph.
+    If the graph is fragmented, meaning has multiple unconnected subgraphs,
+    the function will choose the node with the highest degree as the origin node
+    for each fragment.
+
+    Parameters
+    ----------
+    graph : nx.Graph
+        The undirected graph to convert to a directed graph.
+    origin : int
+        The node to use as the origin node for the directed graph.
+        The origin node will have no incoming edges.
+    """
+    if isinstance(graph, nx.DiGraph):
+        logger.info("The input graph is already a directed graph.")
+        return graph
+    if len(list(nx.connected_components(graph))) > 1:
+        logger.warning("""
+        The input graph is not connected.
+        The unconnected components might lose edges
+        """)
+        origin_part = nx.node_connected_component(graph, origin)
+        fragments = graph.subgraph(set(graph.nodes()) - origin_part)
+        graph = graph.subgraph(origin_part)
+    else:
+        fragments = None
+
+    di_graph = nx.DiGraph(graph)
+    di_graph.remove_edges_from(di_graph.edges - nx.bfs_edges(di_graph, origin))
+
+    if fragments:
+        # choose a node with the highest degree as the origin node
+        # Do this for each fragment
+        for fragment in nx.connected_components(fragments):
+            fragment_subgraph = fragments.subgraph(fragment)
+            """Choose a origin of the fragment with the highest degree.
+            This is arbitrary but finding a better node
+            without knowledge were the network broke is hard"""
+            origin = max(fragment_subgraph.degree, key=lambda x: x[1])[0]
+            di_fragment = nx.DiGraph(fragment_subgraph)
+            di_fragment.remove_edges_from(
+                di_fragment.edges - nx.bfs_edges(di_fragment, origin)
+            )
+            di_graph.add_edges_from(di_fragment.edges(data=True))
+            di_graph.add_nodes_from(di_fragment.nodes(data=True))
+
+    return di_graph
 
 
 class SkeletonGraph:
@@ -156,3 +212,17 @@ class SkeletonGraph:
             return False
         else:
             return True
+
+    def to_directed(self, origin: int) -> nx.DiGraph:
+        """Return a directed graph from the skeleton graph.
+
+        The directed graph has the same nodes and edges as the skeleton graph.
+
+        Parameters
+        ----------
+        origin : int
+            The node to use as the origin node for the directed graph.
+            The origin node will have no incoming edges.
+        """
+        self.graph = make_graph_directed(self.graph, origin)
+        return self.graph
