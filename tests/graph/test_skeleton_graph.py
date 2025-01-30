@@ -1,6 +1,8 @@
 """Tests for the SkeletonGraph class."""
 
-from skeleplex.graph.skeleton_graph import SkeletonGraph
+import networkx as nx
+
+from skeleplex.graph.skeleton_graph import SkeletonGraph, get_next_node_key
 
 
 def test_skeleton_graph_equality(simple_t_skeleton_graph):
@@ -49,3 +51,19 @@ def test_skeleton_graph_to_directed(simple_t_skeleton_graph):
         assert all(
             edges in directed_graph.out_edges(u) for edges in directed_graph.in_edges(v)
         )
+
+
+def test_get_next_node_id():
+    """Test the get_next_node_id function."""
+    # initialize an empty graph
+    graph = nx.Graph()
+
+    assert get_next_node_key(graph) == 0
+
+    # add a node to the graph
+    graph.add_node(0)
+    assert get_next_node_key(graph) == 1
+
+    # add multiple nodes to the graph
+    graph.add_nodes_from([10, 23, 65])
+    assert get_next_node_key(graph) == 66
