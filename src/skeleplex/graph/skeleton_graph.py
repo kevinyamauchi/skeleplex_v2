@@ -106,6 +106,26 @@ def make_graph_directed(graph: nx.Graph, origin: int) -> nx.DiGraph:
     return di_graph
 
 
+def get_next_node_key(graph: nx.Graph) -> int:
+    """Return the next available node key in the graph.
+
+    This function assumes the graph node keys are integers.
+
+    Parameters
+    ----------
+    graph : nx.Graph
+        The graph to get the next node key from.
+
+    Returns
+    -------
+    int
+        The next available node key.
+        This is the maximum node key + 1.
+        If there are no nodes, the function returns 0.
+    """
+    return int(np.max(graph.nodes)) + 1 if graph.nodes else 0
+
+
 class SkeletonGraph:
     """Data class for a skeleton graph.
 
