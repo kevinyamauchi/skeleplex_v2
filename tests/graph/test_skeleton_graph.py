@@ -1,8 +1,18 @@
 """Tests for the SkeletonGraph class."""
 
 import networkx as nx
+import numpy as np
 
-from skeleplex.graph.skeleton_graph import SkeletonGraph, get_next_node_key
+from skeleplex.graph.constants import (
+    EDGE_COORDINATES_KEY,
+    EDGE_SPLINE_KEY,
+)
+from skeleplex.graph.skeleton_graph import (
+    SkeletonGraph,
+    flip_spline,
+    get_next_node_key,
+    orient_splines,
+)
 
 
 def test_skeleton_graph_equality(simple_t_skeleton_graph):
@@ -67,3 +77,30 @@ def test_get_next_node_id():
     # add multiple nodes to the graph
     graph.add_nodes_from([10, 23, 65])
     assert get_next_node_key(graph) == 66
+
+
+def test_skeleton_graph_orient_splines(simple_t_skeleton_graph):
+    directed_graph = simple_t_skeleton_graph.to_directed(origin=0)
+
+    # flip a single spline
+    edge = next(iter(directed_graph.edges()))
+    spline0 = directed_graph.edges()[edge][EDGE_SPLINE_KEY]
+    eval_original_spline = spline0.eval(np.array([0, 1]))
+    edge_coordinates0 = directed_graph.edges()[edge][EDGE_COORDINATES_KEY]
+    flipped_spline, flipped_coords = flip_spline(spline0, edge_coordinates0)
+    directed_graph.edges()[edge][EDGE_SPLINE_KEY] = flipped_spline
+    directed_graph.edges()[edge][EDGE_COORDINATES_KEY] = flipped_coords
+
+    flipped_graph = directed_graph.copy()
+    eval_flipped_spline = flipped_spline.eval(np.array([0, 1]))
+
+    # check that the spline has changed
+    assert not np.allclose(eval_flipped_spline, eval_original_spline)
+
+    # reorder the graph
+    oriented_graph = orient_splines(flipped_graph)
+    oriented_graph = oriented_graph.edges()[edge][EDGE_SPLINE_KEY]
+    eval_oriented_spline = oriented_graph.eval(np.array([0, 1]))
+
+    # check that the spline is oriented
+    assert np.allclose(eval_oriented_spline, eval_original_spline)
