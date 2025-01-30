@@ -9,3 +9,26 @@
 ## Work in progress
 
 This is a work-in-progress re-write of SkelePlex. Currently, nothing is working. Please check back later!
+
+## Development installation
+
+First, fork the library and clone your fork to your local computer. `cd` into the cloned directory.
+
+```bash
+
+cd path/to/skeleplex-v2
+```
+
+We recommend installinginto a fresh environment. Activate your skeleplex environment and then install in editable mode with the optional developer and testing dependencies
+
+```bash
+
+pip install -e ".[dev,test]"
+```
+
+Finally, install the pre-commit git hooks. These will apply the linting before you commit your changes.
+
+
+```bash
+pre-commit install
+```
