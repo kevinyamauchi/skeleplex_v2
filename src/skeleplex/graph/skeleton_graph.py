@@ -130,11 +130,6 @@ def get_next_node_key(graph: nx.Graph) -> int:
     return int(np.max(graph.nodes)) + 1 if graph.nodes else 0
 
 
-def flip_spline(spline: B3Spline, path: np.ndarray) -> B3Spline:
-    """Recomputes the spline inverse to the path."""
-    return spline.from_points(path[::-1]), path[::-1]
-
-
 def orient_splines(graph: nx.DiGraph) -> nx.DiGraph:
     """Checks if the splines are oriented correctly.
 
@@ -147,9 +142,17 @@ def orient_splines(graph: nx.DiGraph) -> nx.DiGraph:
     Parameters
     ----------
     graph : nx.DiGraph
-        The graph to orient the splines in
+        The graph to orient the splines in.
+
+    Returns
+    -------
+    nx.DiGraph
+        The graph with the splines oriented correctly.
 
     """
+    edge_spline_dict = {}
+    edge_coordinates_dict = {}
+
     for u, v, attr in graph.edges(data=True):
         spline = attr[EDGE_SPLINE_KEY]
         u_coord = graph.nodes[u][NODE_COORDINATE_KEY]
@@ -158,17 +161,20 @@ def orient_splines(graph: nx.DiGraph) -> nx.DiGraph:
         if np.linalg.norm(u_coord - spline_coordinates[0]) > np.linalg.norm(
             u_coord - spline_coordinates[-1]
         ):
-            logger.info(f"Flipped spline of edge {u,v}.")
+            logger.info(f"Flipped spline of edge ({u,v}).")
             edge_coordinates = attr[EDGE_COORDINATES_KEY]
             # check if path is inverse to spline
             if np.linalg.norm(
                 edge_coordinates[0] - spline_coordinates[0]
-            ) < np.linalg.norm(edge_coordinates[-1] - spline_coordinates[-1]):
+            ) > np.linalg.norm(edge_coordinates[-1] - spline_coordinates[-1]):
                 edge_coordinates = edge_coordinates[::-1]
 
-            flipped_spline, flipped_cords = flip_spline(spline, edge_coordinates)
-            graph[u][v][EDGE_SPLINE_KEY] = flipped_spline
-            graph[u][v][EDGE_COORDINATES_KEY] = flipped_cords
+            flipped_spline, flipped_cords = spline.flip_spline(edge_coordinates)
+            edge_spline_dict[(u, v)] = flipped_spline
+            edge_coordinates_dict[(u, v)] = flipped_cords
+
+    nx.set_edge_attributes(graph, edge_spline_dict, EDGE_SPLINE_KEY)
+    nx.set_edge_attributes(graph, edge_coordinates_dict, EDGE_COORDINATES_KEY)
 
     return graph
 

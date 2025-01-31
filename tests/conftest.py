@@ -1,22 +1,68 @@
 """Fixtures for testing with Pytest."""
 
+import networkx as nx
 import numpy as np
 import pytest
 
-from skeleplex.data.skeleton_image import simple_t
-from skeleplex.graph.image_to_graph import image_to_graph_skan
+from skeleplex.graph.constants import (
+    EDGE_COORDINATES_KEY,
+    EDGE_SPLINE_KEY,
+    NODE_COORDINATE_KEY,
+)
 from skeleplex.graph.skeleton_graph import SkeletonGraph
 from skeleplex.graph.spline import B3Spline
 
 
 @pytest.fixture
 def simple_t_skeleton_graph():
-    """Return the simple T skeleton as a graph.
+    """Return the simple T skeleton as a graph."""
+    graph = nx.DiGraph()
+    # add nodes
+    graph.add_node(0, **{NODE_COORDINATE_KEY: np.array([10, 0, 0])})
+    graph.add_node(1, **{NODE_COORDINATE_KEY: np.array([10, 10, 0])})
+    graph.add_node(2, **{NODE_COORDINATE_KEY: np.array([0, 10, 0])})
+    graph.add_node(3, **{NODE_COORDINATE_KEY: np.array([20, 10, 0])})
 
-    Todo: replace with valid data rather than a processed object.
-    """
-    skeleton_image = simple_t()
-    graph = image_to_graph_skan(skeleton_image=skeleton_image)
+    # add edge coordinates
+    # flipped edge
+    graph.add_edge(
+        0, 1, **{EDGE_COORDINATES_KEY: np.linspace([10, 0, 0], [10, 10, 0], 4)}
+    )
+    graph.add_edge(
+        1, 2, **{EDGE_COORDINATES_KEY: np.linspace([10, 10, 0], [0, 10, 0], 4)}
+    )
+    graph.add_edge(
+        1, 3, **{EDGE_COORDINATES_KEY: np.linspace([10, 10, 0], [20, 10, 0], 4)}
+    )
+
+    # add spline
+    graph.add_edge(
+        0,
+        1,
+        **{
+            EDGE_SPLINE_KEY: B3Spline.from_points(
+                np.linspace([10, 0, 0], [10, 10, 0], 4)
+            )
+        },
+    )
+    graph.add_edge(
+        1,
+        2,
+        **{
+            EDGE_SPLINE_KEY: B3Spline.from_points(
+                np.linspace([10, 10, 0], [0, 10, 0], 4)
+            )
+        },
+    )
+    graph.add_edge(
+        1,
+        3,
+        **{
+            EDGE_SPLINE_KEY: B3Spline.from_points(
+                np.linspace([10, 10, 0], [20, 10, 0], 4)
+            )
+        },
+    )
 
     return SkeletonGraph(graph=graph)
 
@@ -40,3 +86,61 @@ def simple_spline():
 
     # fit a spline to the points
     return B3Spline.from_points(points)
+
+
+@pytest.fixture
+def simple_t_with_flipped_spline():
+    """Return the simple T skeleton as a graph with a flipped spline."""
+
+    graph = nx.DiGraph()
+    # add nodes
+    graph.add_node(0, **{NODE_COORDINATE_KEY: np.array([10, 0, 0])})
+    graph.add_node(1, **{NODE_COORDINATE_KEY: np.array([10, 10, 0])})
+    graph.add_node(2, **{NODE_COORDINATE_KEY: np.array([0, 10, 0])})
+    graph.add_node(3, **{NODE_COORDINATE_KEY: np.array([20, 10, 0])})
+
+    # add edge coordinates
+    # flipped edge
+    graph.add_edge(
+        0, 1, **{EDGE_COORDINATES_KEY: np.linspace([10, 10, 0], [10, 0, 0], 4)}
+    )
+
+    graph.add_edge(
+        1, 2, **{EDGE_COORDINATES_KEY: np.linspace([10, 10, 0], [0, 10, 0], 4)}
+    )
+    graph.add_edge(
+        1, 3, **{EDGE_COORDINATES_KEY: np.linspace([10, 10, 0], [20, 10, 0], 4)}
+    )
+
+    # add spline
+    # flipped spline
+    graph.add_edge(
+        0,
+        1,
+        **{
+            EDGE_SPLINE_KEY: B3Spline.from_points(
+                np.linspace([10, 10, 0], [10, 0, 0], 4)
+            )
+        },
+    )
+
+    graph.add_edge(
+        1,
+        2,
+        **{
+            EDGE_SPLINE_KEY: B3Spline.from_points(
+                np.linspace([10, 10, 0], [0, 10, 0], 4)
+            )
+        },
+    )
+    graph.add_edge(
+        1,
+        3,
+        **{
+            EDGE_SPLINE_KEY: B3Spline.from_points(
+                np.linspace([10, 10, 0], [20, 10, 0], 4)
+            )
+        },
+    )
+
+    return graph

@@ -44,3 +44,23 @@ def test_spline_serialization(simple_spline, tmp_path):
     reloaded_spline = B3Spline.from_json_file(file_path)
 
     assert simple_spline == reloaded_spline
+
+
+def test_spline_flipping(simple_spline):
+    """Test if spline is getting flipped correctly."""
+
+    eval_points = simple_spline.eval(np.linspace(0, 1, 4))
+    flipped_spline, flipped_coords = simple_spline.flip_spline(eval_points)
+
+    # test if the flipping changed the spline
+    with np.testing.assert_raises(AssertionError):
+        np.testing.assert_allclose(
+            eval_points, flipped_spline.eval(np.linspace(0, 1, 4)), atol=1e-2
+        )
+
+    # test if the flipping changed the coordinates to the inverse
+    np.testing.assert_allclose(
+        eval_points[::-1], flipped_spline.eval(np.linspace(0, 1, 4)), atol=1e-2
+    )
+    # test if the coordinates are flipped
+    np.testing.assert_allclose(eval_points[::-1], flipped_coords, atol=1e-2)

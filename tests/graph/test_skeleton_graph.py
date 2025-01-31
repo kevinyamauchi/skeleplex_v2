@@ -9,7 +9,6 @@ from skeleplex.graph.constants import (
 )
 from skeleplex.graph.skeleton_graph import (
     SkeletonGraph,
-    flip_spline,
     get_next_node_key,
     orient_splines,
 )
@@ -79,28 +78,23 @@ def test_get_next_node_id():
     assert get_next_node_key(graph) == 66
 
 
-def test_skeleton_graph_orient_splines(simple_t_skeleton_graph):
-    directed_graph = simple_t_skeleton_graph.to_directed(origin=0)
-
-    # flip a single spline
-    edge = next(iter(directed_graph.edges()))
-    spline0 = directed_graph.edges()[edge][EDGE_SPLINE_KEY]
-    eval_original_spline = spline0.eval(np.array([0, 1]))
-    edge_coordinates0 = directed_graph.edges()[edge][EDGE_COORDINATES_KEY]
-    flipped_spline, flipped_coords = flip_spline(spline0, edge_coordinates0)
-    directed_graph.edges()[edge][EDGE_SPLINE_KEY] = flipped_spline
-    directed_graph.edges()[edge][EDGE_COORDINATES_KEY] = flipped_coords
-
-    flipped_graph = directed_graph.copy()
-    eval_flipped_spline = flipped_spline.eval(np.array([0, 1]))
-
-    # check that the spline has changed
-    assert not np.allclose(eval_flipped_spline, eval_original_spline)
+def test_skeleton_graph_orient_splines(simple_t_with_flipped_spline):
+    """Test orienting the splines in a SkeletonGraph."""
+    correct_spline_coordinates = np.linspace([10, 0, 0], [10, 10, 0], 4)
+    flipped_edge = (0, 1)
 
     # reorder the graph
-    oriented_graph = orient_splines(flipped_graph)
-    oriented_graph = oriented_graph.edges()[edge][EDGE_SPLINE_KEY]
-    eval_oriented_spline = oriented_graph.eval(np.array([0, 1]))
+    oriented_graph = orient_splines(simple_t_with_flipped_spline)
+    oriented_spline = oriented_graph.edges()[flipped_edge][EDGE_SPLINE_KEY]
+    eval_oriented_spline = oriented_spline.eval(np.linspace(0, 1, 4))
+    oriented_edge_coordinates = oriented_graph.edges()[flipped_edge][
+        EDGE_COORDINATES_KEY
+    ]
 
     # check that the spline is oriented
-    assert np.allclose(eval_oriented_spline, eval_original_spline)
+    np.testing.assert_allclose(
+        eval_oriented_spline, correct_spline_coordinates, atol=0.5
+    )
+    np.testing.assert_allclose(
+        oriented_edge_coordinates, correct_spline_coordinates, atol=0.5
+    )
