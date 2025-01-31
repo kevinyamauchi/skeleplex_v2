@@ -50,6 +50,7 @@ def test_spline_flipping(simple_spline):
     """Test if spline is getting flipped correctly."""
 
     eval_points = simple_spline.eval(np.linspace(0, 1, 4))
+    # flip the spline
     flipped_spline, flipped_coords = simple_spline.flip_spline(eval_points)
 
     # test if the flipping changed the spline
