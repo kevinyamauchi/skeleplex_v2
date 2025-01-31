@@ -50,6 +50,8 @@ dependencies = [
 [project.optional-dependencies]
 # for visualization
 napari = ["napari[all]"]
+pygfx = ["pygfx"]
+viz = ["app-model", "superqt"]
 # add dependencies used for testing here
 test = ["pytest", "pytest-cov"]
 # add anything else you like to have in your dev environment here
