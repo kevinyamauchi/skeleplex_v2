@@ -226,3 +226,20 @@ class B3Spline:
         )
         spline.fit(points)
         return cls(model=spline)
+
+    def flip_spline(self, path: np.ndarray) -> "B3Spline":
+        """Recomputes the spline inverse to the path.
+
+        Parameters
+        ----------
+        path : np.ndarray
+            The coordinates to fit the spline to.
+
+        Returns
+        -------
+        B3Spline
+            The flipped spline.
+        np.ndarray
+            The flipped path coordinates.
+        """
+        return self.from_points(path[::-1]), path[::-1]
